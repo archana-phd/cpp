@@ -1,0 +1,88 @@
+
+## 📊 Market Data Processing
+1. Implement an **order book** using `std::map` or `std::multimap`.
+2. Parse a **market data feed** (e.g., FIX) using `constexpr` and struct-based parsing.
+3. Create a **message router** using `std::variant` and `std::visit`.
+4. Maintain a **top-of-book** structure using priority queues.
+5. Design a **cache-aligned tick structure** to optimize performance.
+
+---
+
+## 📝 Order Management
+6. Simulate a **basic limit order matching engine**.
+7. Add support for **IOC (Immediate or Cancel)** and **FOK (Fill or Kill)** orders.
+8. Use `std::unordered_map` for fast **order cancellation** lookups.
+9. Create a **thread-safe order store** using `std::shared_mutex`.
+10. Simulate **order placement latency and jitter** using a delayed priority queue.
+
+---
+
+## ⚡ Latency & Performance
+11. Implement a **lock-free ring buffer** using `std::atomic`.
+12. Measure function latency using `std::chrono::high_resolution_clock`.
+13. Write a **bounded queue** with no dynamic memory allocations.
+14. Build a **memory pool allocator** to reuse objects efficiently.
+15. Create a **batching system** to group orders every microsecond.
+
+---
+
+## 🕒 Tick Data Handling
+16. Store and retrieve **OHLC (Open-High-Low-Close)** data.
+17. Implement a **VWAP (Volume Weighted Average Price)** calculator.
+18. Build a **tick deduplication system** for trade events.
+19. Compute **time-weighted average price (TWAP)** over time intervals.
+20. Index and retrieve prices using **timestamped containers**.
+
+---
+
+## 🧵 Concurrency & Multithreading
+21. Run **market data and order streams** using `std::thread` and `std::mutex`.
+22. Implement **producer-consumer pattern** using `std::condition_variable`.
+23. Simulate contention in **shared price cache** and resolve with lock strategies.
+24. Use **thread-local storage** for instrument-specific data.
+25. Implement **double buffering** for concurrent reads/writes.
+
+---
+
+## 🧬 Templates and Generic Programming
+26. Create a **CRTP-based market event dispatcher**.
+27. Write a **templated moving average calculator**.
+28. Implement a **compile-time type switcher** for different asset types.
+29. Design a **policy-based risk check framework**.
+30. Use `std::enable_if` or C++20 concepts to overload for specific asset traits.
+
+---
+
+## 🔧 STL & Memory Optimization
+31. Store **millions of trades** with memory-efficient `std::vector`.
+32. Compact **tick data representation** using bit-fields.
+33. Use `std::unordered_map<int, double>` for **price-level aggregation**.
+34. Apply `std::array` for **cache-friendly tick snapshots**.
+35. Write and benchmark a **custom allocator**.
+
+---
+
+## 🧠 Real-World Trading Problems
+36. Detect **arbitrage** opportunities across instruments.
+37. Simulate **order book imbalance signal**.
+38. Implement a **TWAP execution strategy**.
+39. Simulate **market impact** of large orders.
+40. Build a **replay engine** for historical tick data with playback speed control.
+
+---
+
+## 🧼 Idiomatic C++ Practices
+41. Create an **RAII-based logger** for execution path profiling.
+42. Use **SFINAE** to restrict function usage to debug builds.
+43. Handle optional order fields with `std::optional`.
+44. Write **`constexpr` tick rounding functions**.
+45. Use C++20 **ranges (`views::filter`, `views::transform`)** for trade filtering.
+
+---
+
+## ✅ Testing & Robustness
+46. Build a **mock market data generator** for testing.
+47. Implement a **fuzz tester** for message parsing logic.
+48. Benchmark function performance with real-world tick data.
+49. Compare **`std::deque` vs `std::vector`** for buffering performance.
+50. Create a **C++20 `concept`** for validating pricing models of instruments.
