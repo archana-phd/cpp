@@ -1,0 +1,150 @@
+Option 1: Use a C-style interface in a shared library (Most Practical)
+Build the LibTorch-based module as a separate .so (shared library) using a modern compiler (g++ 11+), and communicate with your main application via a C-style interface (extern "C").
+
+✅ Your legacy app only sees this module as a black box.
+
+✅ Use opaque pointers, raw buffers, or serialized data (e.g., protobuf or flatbuffers) to exchange data.
+
+✅ Can isolate memory allocation and ownership in the LibTorch side.
+
+Design:
+
+// libtorch_bridge.h
+extern "C" {
+  void* create_model(const char* model_path);
+  void destroy_model(void* model);
+  void run_inference(void* model, float* input, int input_size, float* output, int output_size);
+}
+Compile this .so using g++ 11+ and libtorch.
+
+Your main app, compiled with g++ 6.3, uses dlopen/dlsym or static linking to interact via extern "C".
+--
+
+Write a pure C-style interface using extern "C" functions.
+
+Use opaque pointers to manage internal C++ classes/objects.
+
+Build shared libraries:
+
+.so for Linux
+
+.dll for Windows
+
+Your legacy scripting engine dynamically loads the library using:
+
+dlopen + dlsym (Linux)
+
+LoadLibrary + GetProcAddress (Windows)
+
+🛠️ Cross-platform Example
+Header (libtorch_bridge.h)
+cpp
+Copy
+Edit
+#pragma once
+
+#ifdef _WIN32
+  #define EXPORT __declspec(dllexport)
+#else
+  #define EXPORT __attribute__((visibility("default")))
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Opaque handle for model instance
+typedef void* TorchModel;
+
+// Load model from file
+EXPORT TorchModel create_model(const char* model_path);
+
+// Run inference
+EXPORT void run_inference(TorchModel model, float* input, int input_size, float* output, int output_size);
+
+// Clean up
+EXPORT void destroy_model(TorchModel model);
+
+#ifdef __cplusplus
+}
+#endif
+
+C++ Implementation (libtorch_bridge.cpp)
+Compiled with g++ 11+ or MSVC 2019+ depending on OS, and linked with LibTorch
+
+
+#include "libtorch_bridge.h"
+#include <torch/script.h>
+#include <memory>
+#include <vector>
+
+class ModelWrapper {
+public:
+    torch::jit::script::Module module;
+
+    explicit ModelWrapper(const std::string& path) {
+        module = torch::jit::load(path);
+    }
+
+    void infer(float* in, int in_size, float* out, int out_size) {
+        torch::Tensor input_tensor = torch::from_blob(in, {1, in_size});
+        auto output = module.forward({input_tensor}).toTensor();
+        std::memcpy(out, output.data_ptr<float>(), sizeof(float) * std::min(out_size, (int)output.numel()));
+    }
+};
+
+// C interface
+TorchModel create_model(const char* model_path) {
+    try {
+        return new ModelWrapper(model_path);
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+void run_inference(TorchModel model, float* input, int input_size, float* output, int output_size) {
+    if (!model) return;
+    static_cast<ModelWrapper*>(model)->infer(input, input_size, output, output_size);
+}
+
+void destroy_model(TorchModel model) {
+    delete static_cast<ModelWrapper*>(model);
+}
+
+--
+
+g++ -std=c++17 -fPIC -shared -o libmltorch.so libtorch_bridge.cpp \
+  -I/path/to/libtorch/include \
+  -I/path/to/libtorch/include/torch/csrc/api/include \
+  -L/path/to/libtorch/lib -ltorch -lc10 -Wl,-rpath=/path/to/libtorch/lib
+✅ Windows (MSVC)
+cmd
+Copy
+Edit
+cl /LD /EHsc /I"path\to\libtorch\include" /I"path\to\libtorch\include\torch\csrc\api\include" libtorch_bridge.cpp /link /LIBPATH:"path\to\libtorch\lib" torch.lib c10.lib /OUT:mltorch.dll
+Make sure torch_cpu.dll, c10.dll, and others are in your PATH or same folder as .exe.
+
+
+
+dlopen/LoadLibrary
+
+dlsym/GetProcAddress
+
+You can dynamically load the shared lib and call the exposed C functions:
+
+c
+Copy
+Edit
+TorchModel model = create_model("model.pt");
+run_inference(model, input, input_size, output, output_size);
+destroy_model(model);
+Wrap this in your scripting engine as a foreign function/module.
+
+
+Train a PyTorch model → export as TorchScript .pt.
+
+Build the bridge .so / .dll using a modern compiler + LibTorch.
+
+Write bindings/loaders in your scripting language.
+
+Test on both Linux and Windows.
